@@ -1,0 +1,30 @@
+# ---- everything at the root is ignored unless it is listed here ----
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/docs/
+!/scripts/
+!/sql/
+!/app/
+
+# ---- inside app/, only the modular solution ----
+/app/*
+!/app/v2/
+
+# ---- scripts: keep the scripts, drop backups ----
+/scripts/backup/
+
+# ---- build output and IDE files ----
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# ---- secrets and local settings: NEVER commit ----
+**/appsettings.Development.json
+**/appsettings.Local.json
+*.pfx
+*.env

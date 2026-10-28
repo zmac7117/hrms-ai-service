@@ -1,0 +1,4 @@
+{
+  "Security": { "ApiKey": "change-me-dev-key" },
+  "Admin":    { "Password": "change-me-admin-password" }
+}

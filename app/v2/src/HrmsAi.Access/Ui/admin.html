@@ -1,0 +1,318 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HRMS AI · API keys</title>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--text:#1b2430;--muted:#667085;--line:#e3e7ee;--accent:#2457d6;--accent-text:#fff;--danger:#c0392b;--ok:#1e8e4e;--warn:#b7791f}
+  @media (prefers-color-scheme:dark){:root{--bg:#10141a;--card:#1a2029;--text:#e7ebf1;--muted:#97a3b4;--line:#2a3441;--accent:#6b93f6;--accent-text:#0b1220;--danger:#ef6b5b;--ok:#4cc38a;--warn:#e3b455}}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+  h1{font-size:17px;margin:0}
+  h2,h3{margin:0 0 8px}
+  main{max-width:1100px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+  #login{max-width:380px;margin:60px auto}
+  .muted{color:var(--muted)} .err{color:var(--danger);min-height:1.3em;margin:8px 0 0}
+  button{font:inherit;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+  button.danger{color:var(--danger)}
+  input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);width:100%}
+  label{display:block;margin:10px 0 4px;color:var(--muted);font-size:12.5px}
+  label.inline{display:flex;gap:8px;align-items:center;color:var(--text);font-size:14px;margin:6px 0}
+  label.inline input{width:auto}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;color:var(--muted);font-weight:600}
+  .tablewrap{overflow-x:auto}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--line)}
+  .b-Active{color:var(--ok);border-color:var(--ok)} .b-Deactivated,.b-Expired{color:var(--muted)} .b-Limit{color:var(--warn);border-color:var(--warn)}
+  .bar{height:6px;border-radius:4px;background:var(--line);margin-top:5px;overflow:hidden;min-width:120px}
+  .bar>i{display:block;height:100%;background:var(--accent)} .bar.full>i{background:var(--warn)}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .rowbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);padding:22px;width:min(560px,94vw)}
+  dialog::backdrop{background:rgba(0,0,0,.5)}
+  fieldset{border:1px solid var(--line);border-radius:8px;margin:12px 0 0;padding:6px 12px}
+  legend{color:var(--muted);font-size:12.5px;padding:0 6px}
+  .warnbox{border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:8px 10px;margin:10px 0}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>HRMS AI · API keys</h1>
+  <div id="toolbar" hidden>
+    <button class="primary" id="btnNew">New key</button>
+    <button id="btnRefresh">Refresh</button>
+    <button id="btnLock">Lock</button>
+  </div>
+</header>
+
+<main>
+  <section id="login" class="card">
+    <h2>Admin sign in</h2>
+    <p class="muted">This page works only from the server itself.</p>
+    <input id="pw" type="password" placeholder="Admin password" autocomplete="current-password">
+    <div class="actions"><button class="primary" id="btnLogin">Sign in</button></div>
+    <p id="loginErr" class="err"></p>
+  </section>
+
+  <section id="app" class="card" hidden>
+    <p id="msg" class="muted"></p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Client</th><th>Key</th><th>Modules</th><th>Tokens</th><th>Status</th><th>Last used</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<dialog id="editDlg">
+  <h3 id="editTitle"></h3>
+  <label>Client name<input id="fName" maxlength="200"></label>
+  <fieldset><legend>Modules this key may use</legend>
+    <label class="inline"><input type="checkbox" id="fAll"> All modules (including ones added later)</label>
+    <div id="fModules"></div>
+  </fieldset>
+  <fieldset><legend>Token limit (tokens are the units of AI work the model reports)</legend>
+    <label class="inline"><input type="checkbox" id="fUnlimited"> Unlimited</label>
+    <div id="limitBox" class="two">
+      <div><label>Limit<input id="fLimit" type="number" min="0" step="1000"></label></div>
+      <div><label>Per<select id="fPeriod"><option>Daily</option><option>Monthly</option><option>Total</option></select></label></div>
+    </div>
+  </fieldset>
+  <div class="two">
+    <div><label>Expires on (optional)<input id="fExpires" type="date"></label></div>
+    <div><label>Notes (optional)<input id="fNotes" maxlength="500"></label></div>
+  </div>
+  <p id="editErr" class="err"></p>
+  <div class="actions"><button id="editCancel">Cancel</button><button class="primary" id="editSave">Save</button></div>
+</dialog>
+
+<dialog id="keyDlg">
+  <h3>API key for <span id="keyFor"></span></h3>
+  <div class="warnbox">Copy this key now. It is shown only once and cannot be shown again. If it is lost, create a new secret for this client.</div>
+  <input id="keyVal" class="mono" readonly>
+  <div class="actions"><button id="keyCopy">Copy</button><button class="primary" id="keyDone">I have saved it</button></div>
+</dialog>
+
+<dialog id="usageDlg">
+  <h3>Usage · <span id="usageFor"></span></h3>
+  <h4 class="muted">Last 30 days</h4>
+  <table id="usageDays"></table>
+  <h4 class="muted">Latest calls</h4>
+  <div class="tablewrap" style="max-height:240px;overflow:auto"><table id="usageRecent"></table></div>
+  <div class="actions"><button id="usageClose">Close</button></div>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+let pw = '', modules = [], keys = [], editing = null;
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const kid of kids) e.append(kid);
+  return e;
+}
+const fmt = n => Number(n).toLocaleString();
+const when = s => s ? new Date(s.endsWith('Z') ? s : s + 'Z').toLocaleString() : '—';
+
+async function api(path, method = 'GET', body) {
+  const res = await fetch('/admin/api' + path, {
+    method,
+    headers: { 'X-Admin-Key': pw, 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (res.status === 401) { lock('Wrong password, or the session ended.'); throw new Error('Unauthorized'); }
+  if (!res.ok) throw new Error((data && data.error) || ('Request failed (' + res.status + ')'));
+  return data;
+}
+
+function lock(msg) {
+  pw = '';
+  $('app').hidden = true; $('toolbar').hidden = true; $('login').hidden = false;
+  $('loginErr').textContent = msg || '';
+}
+
+async function login() {
+  pw = $('pw').value;
+  $('loginErr').textContent = '';
+  try {
+    await api('/ping');
+    modules = await api('/modules');
+    $('login').hidden = true; $('app').hidden = false; $('toolbar').hidden = false;
+    $('pw').value = '';
+    await load();
+  } catch (e) { if (e.message !== 'Unauthorized') $('loginErr').textContent = e.message; }
+}
+
+function flash(text, isErr) { const m = $('msg'); m.textContent = text; m.className = isErr ? 'err' : 'muted'; }
+
+async function load() {
+  try { keys = await api('/keys'); render(); } catch (e) { flash(e.message, true); }
+}
+
+function render() {
+  const body = $('rows');
+  body.replaceChildren();
+  if (!keys.length) body.append(el('tr', {}, el('td', { colspan: 7, class: 'muted' }, 'No API keys yet. Click "New key".')));
+  for (const k of keys) body.append(row(k));
+  flash(keys.length + ' key(s)');
+}
+
+function row(k) {
+  const limited = k.tokenLimit !== null;
+  const pct = limited ? (k.tokenLimit === 0 ? 100 : Math.min(100, Math.round(k.used * 100 / k.tokenLimit))) : 0;
+  const per = k.limitPeriod.toLowerCase();
+
+  const tokens = el('td', {}, limited
+    ? fmt(k.used) + ' / ' + fmt(k.tokenLimit) + ' (' + per + ')'
+    : fmt(k.used) + ' used (' + per + ') · unlimited');
+  if (limited) tokens.append(el('div', { class: 'bar' + (pct >= 100 ? ' full' : '') }, el('i', { style: 'width:' + pct + '%' })));
+
+  const name = el('td', {}, el('strong', {}, k.clientName));
+  if (k.notes) name.append(el('div', { class: 'muted' }, k.notes));
+  if (k.expiresAt) name.append(el('div', { class: 'muted' }, 'Expires ' + k.expiresAt.slice(0, 10)));
+
+  const buttons = el('div', { class: 'rowbtns' },
+    el('button', { onclick: () => openEdit(k) }, 'Edit'),
+    el('button', { onclick: () => openUsage(k) }, 'Usage'),
+    k.isActive
+      ? el('button', { class: 'danger', onclick: () => setActive(k, false) }, 'Deactivate')
+      : el('button', { onclick: () => setActive(k, true) }, 'Activate'),
+    el('button', { onclick: () => rotate(k) }, 'New secret'));
+
+  return el('tr', {},
+    name,
+    el('td', { class: 'mono' }, k.keyPrefix + '…'),
+    el('td', {}, k.allowedModules.includes('*') ? 'all' : k.allowedModules.join(', ')),
+    tokens,
+    el('td', {}, el('span', { class: 'badge b-' + k.status.split(' ')[0] }, k.status)),
+    el('td', {}, when(k.lastUsedAt)),
+    el('td', {}, buttons));
+}
+
+async function setActive(k, active) {
+  if (!active && !confirm('Deactivate "' + k.clientName + '"? Its key stops working immediately.')) return;
+  try { await api('/keys/' + k.id + '/' + (active ? 'activate' : 'deactivate'), 'POST'); await load(); }
+  catch (e) { flash(e.message, true); }
+}
+
+async function rotate(k) {
+  if (!confirm('Create a new secret for "' + k.clientName + '"? The old key stops working immediately.')) return;
+  try { const r = await api('/keys/' + k.id + '/rotate', 'POST'); showKey(r.apiKey, r.key.clientName); await load(); }
+  catch (e) { flash(e.message, true); }
+}
+
+function showKey(key, client) {
+  $('keyFor').textContent = client;
+  $('keyVal').value = key;
+  $('keyDlg').showModal();
+  $('keyVal').select();
+}
+async function copyKey() {
+  const v = $('keyVal').value;
+  try { await navigator.clipboard.writeText(v); } catch { $('keyVal').select(); document.execCommand('copy'); }
+  $('keyCopy').textContent = 'Copied';
+  setTimeout(() => { $('keyCopy').textContent = 'Copy'; }, 1500);
+}
+
+function openEdit(k) {
+  editing = k || null;
+  $('editTitle').textContent = k ? 'Edit key · ' + k.clientName : 'New API key';
+  $('fName').value = k ? k.clientName : '';
+  const all = !k || k.allowedModules.includes('*');
+  $('fAll').checked = all;
+  const box = $('fModules');
+  box.replaceChildren();
+  for (const m of modules) {
+    const cb = el('input', { type: 'checkbox', value: m });
+    cb.checked = all || (k && k.allowedModules.includes(m));
+    box.append(el('label', { class: 'inline' }, cb, m));
+  }
+  syncModules();
+  $('fUnlimited').checked = k ? k.tokenLimit === null : false;
+  $('fLimit').value = k ? (k.tokenLimit === null ? '' : k.tokenLimit) : 100000;
+  $('fPeriod').value = k ? k.limitPeriod : 'Monthly';
+  $('fExpires').value = k && k.expiresAt ? k.expiresAt.slice(0, 10) : '';
+  $('fNotes').value = k && k.notes ? k.notes : '';
+  syncLimit();
+  $('editErr').textContent = '';
+  $('editDlg').showModal();
+}
+function syncModules() {
+  const all = $('fAll').checked;
+  for (const cb of $('fModules').querySelectorAll('input')) { cb.disabled = all; if (all) cb.checked = true; }
+}
+function syncLimit() { $('limitBox').hidden = $('fUnlimited').checked; }
+
+async function saveEdit() {
+  const err = $('editErr');
+  const all = $('fAll').checked;
+  const chosen = [...$('fModules').querySelectorAll('input:checked')].map(c => c.value);
+  const unlimited = $('fUnlimited').checked;
+  const limitRaw = $('fLimit').value.trim();
+
+  if (!$('fName').value.trim()) { err.textContent = 'Client name is required.'; return; }
+  if (!all && chosen.length === 0) { err.textContent = 'Choose at least one module.'; return; }
+  if (!unlimited && (limitRaw === '' || Number(limitRaw) < 0)) { err.textContent = 'Enter a token limit, or tick Unlimited.'; return; }
+
+  const body = {
+    clientName: $('fName').value.trim(),
+    allowedModules: all ? ['*'] : chosen,
+    tokenLimit: unlimited ? null : Math.floor(Number(limitRaw)),
+    limitPeriod: $('fPeriod').value,
+    expiresAt: $('fExpires').value || null,
+    notes: $('fNotes').value.trim() || null
+  };
+  try {
+    if (editing) { await api('/keys/' + editing.id, 'PUT', body); $('editDlg').close(); }
+    else { const r = await api('/keys', 'POST', body); $('editDlg').close(); showKey(r.apiKey, r.key.clientName); }
+    await load();
+  } catch (e) { err.textContent = e.message; }
+}
+
+async function openUsage(k) {
+  try {
+    const u = await api('/keys/' + k.id + '/usage?days=30');
+    $('usageFor').textContent = k.clientName;
+    const d = $('usageDays');
+    d.replaceChildren(el('tr', {}, el('th', {}, 'Day (UTC)'), el('th', {}, 'Requests'), el('th', {}, 'Tokens')));
+    for (const x of u.byDay) d.append(el('tr', {}, el('td', {}, x.day.slice(0, 10)), el('td', {}, fmt(x.requests)), el('td', {}, fmt(x.tokens))));
+    if (!u.byDay.length) d.append(el('tr', {}, el('td', { colspan: 3, class: 'muted' }, 'No usage in the last 30 days.')));
+    const r = $('usageRecent');
+    r.replaceChildren(el('tr', {}, el('th', {}, 'Time'), el('th', {}, 'Module'), el('th', {}, 'Operation'), el('th', {}, 'Tokens')));
+    for (const x of u.recent) r.append(el('tr', {}, el('td', {}, when(x.at)), el('td', {}, x.module || ''), el('td', {}, x.operation || ''), el('td', {}, fmt(x.totalTokens))));
+    $('usageDlg').showModal();
+  } catch (e) { flash(e.message, true); }
+}
+
+$('btnLogin').onclick = login;
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+$('btnNew').onclick = () => openEdit(null);
+$('btnRefresh').onclick = load;
+$('btnLock').onclick = () => lock('');
+$('fAll').onchange = syncModules;
+$('fUnlimited').onchange = syncLimit;
+$('editSave').onclick = saveEdit;
+$('editCancel').onclick = () => $('editDlg').close();
+$('keyCopy').onclick = copyKey;
+$('keyDone').onclick = () => { $('keyVal').value = ''; $('keyDlg').close(); };
+$('keyDlg').addEventListener('cancel', e => e.preventDefault());   // the key must be dismissed on purpose
+$('usageClose').onclick = () => $('usageDlg').close();
+</script>
+</body>
+</html>
