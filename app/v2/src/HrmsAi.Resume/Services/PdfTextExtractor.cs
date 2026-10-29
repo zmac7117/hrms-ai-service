@@ -10,4 +10,5 @@ public static class PdfTextExtractor
         return string.Join("\n", doc.GetPages().Select(p => p.Text));
     }
 }
+//Hamid Done
 
