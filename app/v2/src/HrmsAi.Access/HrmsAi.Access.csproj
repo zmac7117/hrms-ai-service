@@ -22,8 +22,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Ui\admin.html" LogicalName="admin.html" />
+    <EmbeddedResource Include="Ui\activity.html" LogicalName="activity.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.89" />
   </ItemGroup>
 </Project>
+

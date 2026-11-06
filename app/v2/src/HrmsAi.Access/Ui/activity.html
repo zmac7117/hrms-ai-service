@@ -1,0 +1,345 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HRMS AI · Activity</title>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--text:#1b2430;--muted:#667085;--line:#e3e7ee;--accent:#2457d6;--accent-text:#fff;--danger:#c0392b;--ok:#1e8e4e;--warn:#b7791f}
+  @media (prefers-color-scheme:dark){:root{--bg:#10141a;--card:#1a2029;--text:#e7ebf1;--muted:#97a3b4;--line:#2a3441;--accent:#6b93f6;--accent-text:#0b1220;--danger:#ef6b5b;--ok:#4cc38a;--warn:#e3b455}}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+  h1{font-size:17px;margin:0} h2,h3{margin:0 0 8px} h4{margin:14px 0 6px}
+  main{max-width:1180px;margin:20px auto;padding:0 16px;display:grid;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  #login{max-width:400px;margin:60px auto}
+  .muted{color:var(--muted)} .small{font-size:12px} .err{color:var(--danger);min-height:1.3em;margin:8px 0 0}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  a{color:var(--accent)}
+  button{font:inherit;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+  button:hover{border-color:var(--accent)} button.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+  input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);width:100%}
+  label{display:block;margin:0 0 4px;color:var(--muted);font-size:12.5px}
+  label.inline{display:flex;gap:6px;align-items:center;color:var(--text);font-size:13px;margin:0}
+  label.inline input{width:auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .big{font-size:26px;font-weight:700;margin:2px 0}
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .chart{display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:14px}
+  .chart .col{flex:1;min-width:6px;max-width:34px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;text-align:center}
+  .chart .col i{display:block;background:var(--accent);border-radius:3px 3px 0 0}
+  .chart .col span{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;color:var(--muted);font-weight:600}
+  tr.click{cursor:pointer} tr.click:hover{background:var(--bg)}
+  .ellip{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--line)}
+  .b-Active,.b-Done{color:var(--ok);border-color:var(--ok)} .b-Failed{color:var(--danger);border-color:var(--danger)}
+  .b-Deactivated,.b-Expired{color:var(--muted)} .b-Limit,.b-Running,.b-Queued{color:var(--warn);border-color:var(--warn)}
+  .bar{height:6px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden;max-width:420px}
+  .bar>i{display:block;height:100%;background:var(--accent)} .bar.full>i{background:var(--warn)}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);padding:22px;width:min(760px,95vw)}
+  dialog::backdrop{background:rgba(0,0,0,.5)}
+  .dl{display:grid;grid-template-columns:130px 1fr;gap:6px 12px}
+  .dl .k{color:var(--muted)}
+  pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:340px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:12.5px;margin:0}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="pageTitle">HRMS AI · Activity</h1>
+  <div id="toolbar" class="toolbar" hidden>
+    <a id="lnkKeys" href="/admin" hidden>API keys</a>
+    <label class="inline"><input type="checkbox" id="auto" checked> Auto-refresh</label>
+    <button id="btnRefresh">Refresh</button>
+    <button id="btnLock">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <section id="login" class="card">
+    <h2 id="loginTitle">Sign in</h2>
+    <p class="muted" id="loginHint"></p>
+    <input id="secret" type="password" autocomplete="off" spellcheck="false">
+    <div class="actions"><button class="primary" id="btnLogin">Sign in</button></div>
+    <p id="loginErr" class="err"></p>
+  </section>
+
+  <section id="app" hidden style="display:grid;gap:16px">
+    <div class="card" id="clientCard"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="card">
+      <div class="filters">
+        <div id="clientPick" hidden><label>Client<select id="fClient"></select></label></div>
+        <div><label>Period<select id="fDays">
+          <option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option><option value="0">All time</option></select></label></div>
+        <div><label>Service<select id="fModule"><option value="">All</option></select></label></div>
+        <div><label>Status<select id="fStatus">
+          <option value="">All</option><option>Done</option><option>Failed</option><option>Running</option><option>Queued</option></select></label></div>
+      </div>
+      <div id="chart" class="chart"></div>
+    </div>
+    <div class="card">
+      <p id="msg" class="muted small"></p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>When</th><th id="thClient" hidden>Client</th><th>Service</th><th>Details</th><th>Status</th><th>Time</th><th>Tokens</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="actions"><button id="btnMore" hidden>Load more</button></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="detailDlg">
+  <h3>Request details</h3>
+  <div id="detailFields" class="dl"></div>
+  <h4 class="muted">Result</h4>
+  <pre id="resultBox"></pre>
+  <div class="actions"><button id="btnCopy">Copy result</button><button class="primary" id="btnClose">Close</button></div>
+</dialog>
+
+<script>
+const MODE = '__MODE__';                     // "client" or "admin", set by the server
+const $ = id => document.getElementById(id);
+const BASE = MODE === 'admin' ? '/admin/api/activity' : '/portal/api';
+let secret = '', me = null, clients = [], rows = [], hasMore = false, busy = false, timer = null;
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const kid of kids) e.append(kid);
+  return e;
+}
+const fmt = n => Number(n || 0).toLocaleString();
+const when = s => s ? new Date(s.endsWith('Z') ? s : s + 'Z').toLocaleString() : '—';
+const secs = ms => (ms === null || ms === undefined) ? '—' : (ms / 1000).toFixed(1) + ' s';
+const label = (m, o) => m + ' · ' + o;
+function pretty(text) {
+  if (!text) return null;
+  try { return JSON.stringify(JSON.parse(text), null, 2); } catch { return text; }
+}
+function flash(text, isErr) { const m = $('msg'); m.textContent = text; m.className = (isErr ? 'err' : 'muted') + ' small'; }
+
+(function init() {
+  if (MODE === 'admin') {
+    $('pageTitle').textContent = 'HRMS AI · Activity (all clients)';
+    $('loginTitle').textContent = 'Admin sign in';
+    $('loginHint').textContent = 'Enter the admin password. This page works only from the server itself.';
+    $('secret').placeholder = 'Admin password';
+    $('clientPick').hidden = false; $('thClient').hidden = false; $('lnkKeys').hidden = false;
+  } else {
+    $('pageTitle').textContent = 'Your AI requests';
+    $('loginTitle').textContent = 'Sign in';
+    $('loginHint').textContent = 'Enter your client key to see your requests, their results and your token usage.';
+    $('secret').placeholder = 'Client key (hrms_...)';
+  }
+})();
+
+async function call(url) {
+  const headers = MODE === 'admin' ? { 'X-Admin-Key': secret } : { 'X-API-Key': secret };
+  const res = await fetch(url, { headers });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (res.status === 401) { lock(MODE === 'admin' ? 'Wrong admin password.' : 'That key was not recognized.'); throw new Error('auth'); }
+  if (res.status === 403) { lock((data && data.error) || 'This key is not allowed.'); throw new Error('auth'); }
+  if (!res.ok) throw new Error((data && data.error) || ('Request failed (' + res.status + ')'));
+  return data;
+}
+
+function lock(msg) {
+  secret = ''; me = null;
+  if (MODE === 'admin') sessionStorage.removeItem('hrmsAdminPw');
+  clearInterval(timer);
+  $('app').hidden = true; $('toolbar').hidden = true; $('login').hidden = false;
+  $('loginErr').textContent = msg || '';
+}
+
+async function login() {
+  secret = ($('secret').value || '').trim();
+  if (!secret) return;
+  $('loginErr').textContent = '';
+  try {
+    if (MODE === 'admin') {
+      await call('/admin/api/ping');
+      clients = await call('/admin/api/keys');
+      fillClients();
+      sessionStorage.setItem('hrmsAdminPw', secret);
+    } else {
+      me = await call('/portal/api/me');
+    }
+    $('login').hidden = true; $('app').hidden = false; $('toolbar').hidden = false;
+    $('secret').value = '';
+    await refreshAll();
+    clearInterval(timer);
+    timer = setInterval(() => { if ($('auto').checked && !$('detailDlg').open && rows.length <= 25) refreshAll(); }, 15000);
+  } catch (e) { if (e.message !== 'auth') $('loginErr').textContent = e.message; }
+}
+
+function fillClients() {
+  const sel = $('fClient');
+  sel.replaceChildren(el('option', { value: '' }, 'All clients'));
+  for (const c of clients) sel.append(el('option', { value: c.id }, c.clientName + '  (' + c.keyPrefix + '…)'));
+  const want = new URLSearchParams(location.search).get('key');
+  if (want && clients.some(c => c.id === want)) sel.value = want;
+}
+
+function qs(extra) {
+  const p = new URLSearchParams();
+  const days = $('fDays').value; if (days !== '') p.set('days', days);
+  const m = $('fModule').value; if (m) p.set('module', m);
+  const s = $('fStatus').value; if (s) p.set('status', s);
+  if (MODE === 'admin' && $('fClient').value) p.set('keyId', $('fClient').value);
+  for (const [k, v] of Object.entries(extra || {})) p.set(k, v);
+  return '?' + p.toString();
+}
+
+async function refreshAll() {
+  if (busy) return;
+  busy = true;
+  try {
+    if (MODE === 'admin') clients = await call('/admin/api/keys'); else me = await call('/portal/api/me');
+    const sum = await call(BASE + '/summary' + qs());
+    renderCard();
+    renderSummary(sum);
+    await loadRows(0);
+  } catch (e) { if (e.message !== 'auth') flash(e.message, true); }
+  finally { busy = false; }
+}
+
+async function loadRows(skip) {
+  const r = await call(BASE + '/requests' + qs({ skip: skip, take: 25 }));
+  rows = skip === 0 ? r.items : rows.concat(r.items);
+  hasMore = r.hasMore;
+  renderRows();
+}
+
+function renderCard() {
+  const k = MODE === 'admin' ? clients.find(c => c.id === $('fClient').value) : me;
+  const box = $('clientCard');
+  box.replaceChildren();
+  if (!k) { box.append(el('span', { class: 'muted' }, 'Showing all clients. Choose a client below to see its limit and status.')); return; }
+  const limited = k.tokenLimit !== null;
+  const per = k.limitPeriod === 'Daily' ? 'today' : k.limitPeriod === 'Monthly' ? 'this month' : 'in total';
+  box.append(el('div', { class: 'row' },
+    el('strong', { style: 'font-size:16px' }, k.clientName),
+    el('span', { class: 'badge b-' + k.status.split(' ')[0] }, k.status),
+    el('span', { class: 'muted mono' }, k.keyPrefix + '…')));
+  box.append(el('div', { class: 'muted' },
+    'Services: ' + (k.allowedModules.includes('*') ? 'all' : k.allowedModules.join(', ')) +
+    (k.expiresAt ? '   |   Valid until ' + k.expiresAt.slice(0, 10) : '')));
+  box.append(el('div', { style: 'margin-top:8px' },
+    limited ? fmt(k.used) + ' of ' + fmt(k.tokenLimit) + ' tokens used ' + per
+            : fmt(k.used) + ' tokens used ' + per + ' (no limit)'));
+  if (limited) {
+    const pct = k.tokenLimit === 0 ? 100 : Math.min(100, Math.round(k.used * 100 / k.tokenLimit));
+    box.append(el('div', { class: 'bar' + (pct >= 100 ? ' full' : '') }, el('i', { style: 'width:' + pct + '%' })));
+  }
+}
+
+function renderSummary(s) {
+  const tile = (name, value, sub) => el('div', { class: 'tile' },
+    el('div', { class: 'muted' }, name), el('div', { class: 'big' }, value), el('div', { class: 'muted small' }, sub || ' '));
+  const t = $('tiles');
+  t.replaceChildren(
+    tile('Requests', fmt(s.requests), s.days ? 'last ' + s.days + ' days' : 'all time'),
+    tile('Tokens used', fmt(s.tokens), 'prompt + output'),
+    tile('Failed', fmt(s.failed), 'requests'),
+    tile('Average time', s.avgSeconds == null ? '—' : s.avgSeconds.toFixed(1) + ' s', 'per request'));
+
+  const sel = $('fModule'), keep = sel.value;
+  sel.replaceChildren(el('option', { value: '' }, 'All'));
+  for (const m of s.byModule) sel.append(el('option', { value: m.module }, m.module + ' (' + m.requests + ')'));
+  sel.value = [...sel.options].some(o => o.value === keep) ? keep : '';
+
+  const c = $('chart');
+  c.replaceChildren();
+  if (!s.byDay.length) { c.append(el('span', { class: 'muted' }, 'No requests in this period.')); return; }
+  const max = Math.max(1, ...s.byDay.map(d => d.tokens));
+  for (const d of s.byDay) {
+    const h = Math.max(3, Math.round(90 * d.tokens / max));
+    c.append(el('div', { class: 'col', title: d.day.slice(0, 10) + ': ' + fmt(d.requests) + ' requests, ' + fmt(d.tokens) + ' tokens' },
+      el('i', { style: 'height:' + h + '%' }), el('span', {}, d.day.slice(5, 10))));
+  }
+}
+
+function badge(status) { return el('span', { class: 'badge b-' + status }, status); }
+
+function renderRows() {
+  const body = $('rows');
+  body.replaceChildren();
+  if (!rows.length) body.append(el('tr', {}, el('td', { colspan: 7, class: 'muted' }, 'No requests found for these filters.')));
+  for (const r of rows) {
+    const tr = el('tr', { class: 'click', onclick: () => openDetail(r.id) }, el('td', {}, when(r.at)));
+    if (MODE === 'admin') tr.append(el('td', {}, r.clientName || '—'));
+    tr.append(
+      el('td', {}, label(r.module, r.operation)),
+      el('td', { class: 'ellip', title: r.title || '' }, r.title || '—'),
+      el('td', {}, badge(r.status)),
+      el('td', {}, secs(r.durationMs)),
+      el('td', { title: 'in ' + fmt(r.promptTokens) + ' / out ' + fmt(r.completionTokens) }, fmt(r.totalTokens)));
+    body.append(tr);
+  }
+  $('btnMore').hidden = !hasMore;
+  flash(rows.length + ' request(s) shown' + (hasMore ? ', more available' : '') + '. Times are in your local time. Click a row for the result.', false);
+}
+
+async function openDetail(id) {
+  try {
+    const d = await call(BASE + '/requests/' + encodeURIComponent(id));
+    const f = $('detailFields');
+    f.replaceChildren();
+    const add = (k, v) => f.append(el('div', { class: 'k' }, k), el('div', {}, v));
+    add('Service', label(d.module, d.operation));
+    if (MODE === 'admin') add('Client', d.clientName || '—');
+    add('Requested', when(d.at));
+    add('Completed', d.completedAt ? when(d.completedAt) : '—');
+    add('Time taken', secs(d.durationMs));
+    add('Status', d.status);
+    add('Tokens', fmt(d.totalTokens) + '   (in ' + fmt(d.promptTokens) + ', out ' + fmt(d.completionTokens) + ')');
+    add('Details', d.title || '—');
+    if (d.error) add('Error', d.error);
+    const text = pretty(d.result);
+    $('resultBox').textContent = text !== null ? text
+      : d.status === 'Failed' ? 'No result: the request failed.'
+      : (d.status === 'Queued' || d.status === 'Running') ? 'Not finished yet.'
+      : 'The result was not stored for this request.';
+    $('btnCopy').hidden = text === null;
+    $('detailDlg').showModal();
+  } catch (e) { if (e.message !== 'auth') flash(e.message, true); }
+}
+
+async function copyResult() {
+  const v = $('resultBox').textContent;
+  try { await navigator.clipboard.writeText(v); } catch { /* ignore */ }
+  $('btnCopy').textContent = 'Copied';
+  setTimeout(() => { $('btnCopy').textContent = 'Copy result'; }, 1500);
+}
+
+$('btnLogin').onclick = login;
+$('secret').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+$('btnRefresh').onclick = refreshAll;
+$('btnLock').onclick = () => lock('');
+$('btnMore').onclick = () => loadRows(rows.length).catch(e => { if (e.message !== 'auth') flash(e.message, true); });
+$('btnCopy').onclick = copyResult;
+$('btnClose').onclick = () => $('detailDlg').close();
+for (const id of ['fDays', 'fModule', 'fStatus', 'fClient']) $(id).onchange = refreshAll;
+
+// coming from the keys page: sign in again with the password remembered for this tab
+if (MODE === 'admin' && sessionStorage.getItem('hrmsAdminPw')) { $('secret').value = sessionStorage.getItem('hrmsAdminPw'); login(); }
+</script>
+</body>
+</html>

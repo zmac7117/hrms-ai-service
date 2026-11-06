@@ -1,6 +1,7 @@
 ﻿using HrmsAi.Resume.Models;
 using HrmsAi.Resume.Settings;
 using HrmsAi.Abstractions;
+using HrmsAi.Documents;
 using Microsoft.Extensions.Options;
 
 namespace HrmsAi.Resume.Services;
@@ -54,6 +55,7 @@ public class ResumeUploadService(
         return UploadResult.Accepted(id);
     }
 }
+
 
 
 

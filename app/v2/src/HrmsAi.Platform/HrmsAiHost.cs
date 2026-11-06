@@ -28,6 +28,7 @@ public static class HrmsAiHost
         services.AddSingleton<IApiKeyValidator, ConfigApiKeyValidator>();
         services.AddSingleton<IQuotaGate, AllowAllQuotaGate>();
         services.AddSingleton<IUsageRecorder, NoOpUsageRecorder>();
+        services.AddSingleton<IAiGate, AiGate>();
 
         services.AddSingleton<IChatClient>(sp =>
         {
@@ -58,4 +59,5 @@ public static class HrmsAiHost
         return app;
     }
 }
+
 

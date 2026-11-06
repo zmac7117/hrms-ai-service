@@ -12,9 +12,13 @@ public record AiUsage(int PromptTokens, int CompletionTokens)
             : new AiUsage((int)(inputTokens ?? 0), (int)(outputTokens ?? 0));
 }
 
-public record UsageRecord(Guid? ApiKeyId, string Module, string Operation, AiUsage Usage, Guid? JobId);
+public record UsageRecord(
+    Guid? ApiKeyId, string Module, string Operation, AiUsage Usage, Guid? JobId,
+    int? DurationMs = null, string? InputSummary = null, string? ResultText = null,
+    string? Error = null, string? Status = null);
 
 public interface IUsageRecorder
 {
     Task RecordAsync(UsageRecord record, CancellationToken ct);
 }
+

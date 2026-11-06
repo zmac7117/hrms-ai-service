@@ -16,7 +16,11 @@ public class ApiKeyMiddleware(RequestDelegate next, IEnumerable<IModule> modules
         }
 
         ctx.Request.Headers.TryGetValue(HeaderName, out var key);
-        var result = await validator.ValidateAsync(key.ToString(), ctx.Request.Path.Value ?? "", ctx.RequestAborted);
+        var supplied = key.ToString();
+        var auth = ctx.Request.Headers.Authorization.ToString();
+        if (string.IsNullOrEmpty(supplied) && auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            supplied = auth.Substring(7).Trim();
+        var result = await validator.ValidateAsync(supplied, ctx.Request.Path.Value ?? "", ctx.RequestAborted);
         if (!result.Success)
         {
             ctx.Response.StatusCode = result.StatusCode;
@@ -33,3 +37,4 @@ public static class ApiKeyMiddlewareExtensions
 {
     public static IApplicationBuilder UseApiKey(this IApplicationBuilder app) => app.UseMiddleware<ApiKeyMiddleware>();
 }
+

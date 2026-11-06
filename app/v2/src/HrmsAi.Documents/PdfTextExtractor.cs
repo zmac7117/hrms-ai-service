@@ -1,6 +1,6 @@
 ﻿using UglyToad.PdfPig;
 
-namespace HrmsAi.Resume.Services;
+namespace HrmsAi.Documents;
 
 public static class PdfTextExtractor
 {
@@ -11,4 +11,5 @@ public static class PdfTextExtractor
     }
 }
 //Hamid Done
+
 

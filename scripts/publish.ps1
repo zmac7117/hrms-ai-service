@@ -1,5 +1,5 @@
 ﻿param(
-    [ValidateSet("Resume", "Full")][string]$Build = "Resume"
+    [string]$Build = "Resume"
 )
 
 # ---- needs administrator rights ----
@@ -87,3 +87,4 @@ catch {
     Write-Host "FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 Read-Host "Press Enter to close"
+

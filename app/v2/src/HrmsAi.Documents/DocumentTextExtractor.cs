@@ -3,7 +3,7 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace HrmsAi.Resume.Services;
+namespace HrmsAi.Documents;
 
 public static class DocumentTextExtractor
 {
@@ -11,6 +11,7 @@ public static class DocumentTextExtractor
     {
         ".pdf"  => PdfTextExtractor.Extract(stream),
         ".docx" => ExtractDocx(stream),
+        ".txt"  => new StreamReader(stream).ReadToEnd(),
         _       => throw new NotSupportedException($"Unsupported file type '{extension}'.")
     };
 
@@ -51,4 +52,6 @@ public static class DocumentTextExtractor
         }
     }
 }
+
+
 

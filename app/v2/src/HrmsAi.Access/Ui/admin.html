@@ -48,6 +48,7 @@
   <h1>HRMS AI · API keys</h1>
   <div id="toolbar" hidden>
     <button class="primary" id="btnNew">New key</button>
+    <button onclick="location.href='/admin/activity'">All requests</button>
     <button id="btnRefresh">Refresh</button>
     <button id="btnLock">Lock</button>
   </div>
@@ -142,7 +143,7 @@ async function api(path, method = 'GET', body) {
 }
 
 function lock(msg) {
-  pw = '';
+  pw = ''; sessionStorage.removeItem('hrmsAdminPw');
   $('app').hidden = true; $('toolbar').hidden = true; $('login').hidden = false;
   $('loginErr').textContent = msg || '';
 }
@@ -152,6 +153,7 @@ async function login() {
   $('loginErr').textContent = '';
   try {
     await api('/ping');
+    sessionStorage.setItem('hrmsAdminPw', pw);
     modules = await api('/modules');
     $('login').hidden = true; $('app').hidden = false; $('toolbar').hidden = false;
     $('pw').value = '';
@@ -190,6 +192,7 @@ function row(k) {
   const buttons = el('div', { class: 'rowbtns' },
     el('button', { onclick: () => openEdit(k) }, 'Edit'),
     el('button', { onclick: () => openUsage(k) }, 'Usage'),
+    el('button', { onclick: () => { location.href = '/admin/activity?key=' + k.id; } }, 'Requests'),
     k.isActive
       ? el('button', { class: 'danger', onclick: () => setActive(k, false) }, 'Deactivate')
       : el('button', { onclick: () => setActive(k, true) }, 'Activate'),
@@ -313,6 +316,12 @@ $('keyCopy').onclick = copyKey;
 $('keyDone').onclick = () => { $('keyVal').value = ''; $('keyDlg').close(); };
 $('keyDlg').addEventListener('cancel', e => e.preventDefault());   // the key must be dismissed on purpose
 $('usageClose').onclick = () => $('usageDlg').close();
+if (sessionStorage.getItem('hrmsAdminPw')) { $('pw').value = sessionStorage.getItem('hrmsAdminPw'); login(); }
 </script>
 </body>
 </html>
+
+
+
+
+

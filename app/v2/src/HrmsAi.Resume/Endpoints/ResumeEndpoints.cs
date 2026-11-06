@@ -23,7 +23,11 @@ public static class ResumeEndpoints
 
         var sw = Stopwatch.StartNew();
         var outcome = await parser.ParseAsync(req.Text, ct);
-        await usage.RecordAsync(new UsageRecord(ctx.GetCaller()?.KeyId, "resume", "parse-text", outcome.Usage, null), ct);
+        await usage.RecordAsync(new UsageRecord(ctx.GetCaller()?.KeyId, "resume", "parse-text", outcome.Usage, null,
+            DurationMs: (int)sw.ElapsedMilliseconds,
+            InputSummary: $"Pasted text ({req.Text.Length:N0} characters)",
+            ResultText: System.Text.Json.JsonSerializer.Serialize(outcome.Data, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)),
+            Status: "Done"), ct);
         return Results.Ok(new { durationMs = sw.ElapsedMilliseconds, data = outcome.Data });
     }
 
@@ -36,3 +40,4 @@ public static class ResumeEndpoints
             : Results.Json(new { error = result.Error }, statusCode: result.StatusCode);
     }
 }
+

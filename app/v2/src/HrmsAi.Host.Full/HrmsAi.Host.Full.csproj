@@ -9,5 +9,8 @@
     <ProjectReference Include="..\HrmsAi.Resume\HrmsAi.Resume.csproj" />
     <ProjectReference Include="..\HrmsAi.Chat\HrmsAi.Chat.csproj" />
     <ProjectReference Include="..\HrmsAi.Access\HrmsAi.Access.csproj" />
+    <ProjectReference Include="..\HrmsAi.JobDescription\HrmsAi.JobDescription.csproj" />
+    <ProjectReference Include="..\HrmsAi.Goals\HrmsAi.Goals.csproj" />
+    <ProjectReference Include="..\HrmsAi.ResumeMatch\HrmsAi.ResumeMatch.csproj" />
   </ItemGroup>
 </Project>
