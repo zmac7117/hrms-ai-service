@@ -107,3 +107,6 @@ services.AddHttpClient<HrmsAiClient>(c =>
     c.Timeout = TimeSpan.FromSeconds(60);
 });
 ```
+
+## Other services
+The key can also be sent as `Authorization: Bearer <key>`. The job description, goals, match score and invoice services are described in [SERVICES.md](SERVICES.md). Clients can review their requests on the dashboard, see [DASHBOARD.md](DASHBOARD.md). Error 403 can also mean that the key is not allowed to use that service, and 503 can mean that no AI slot became free in time (retry after the time in `Retry-After`).

@@ -11,6 +11,7 @@ $catalog = @{
     jd     = @{ Project = "HrmsAi.JobDescription"; Class = "JobDescriptionModule"; Ns = "HrmsAi.JobDescription" }
     goals  = @{ Project = "HrmsAi.Goals";          Class = "GoalsModule";          Ns = "HrmsAi.Goals" }
     chat   = @{ Project = "HrmsAi.Chat";           Class = "ChatModule";           Ns = "HrmsAi.Chat" }
+    invoice = @{ Project = "HrmsAi.Invoices";       Class = "InvoiceModule";         Ns = "HrmsAi.Invoices" }
     match  = @{ Project = "HrmsAi.ResumeMatch";    Class = "MatchModule";           Ns = "HrmsAi.ResumeMatch" }
 }
 foreach ($m in $Modules) {
@@ -76,4 +77,5 @@ Pop-Location
 Write-Host ""
 Write-Host "Created $hostName with modules: $($Modules -join ', ')" -ForegroundColor Green
 Write-Host "Run it locally on port $Port, or publish it with:  C:\HRMS AI\scripts\publish.bat -Build $Name"
+
 

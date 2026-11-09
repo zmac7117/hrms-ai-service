@@ -8,6 +8,7 @@
     <Project Path="src/HrmsAi.Goals/HrmsAi.Goals.csproj" />
     <Project Path="src/HrmsAi.Host.Full/HrmsAi.Host.Full.csproj" />
     <Project Path="src/HrmsAi.Host.Resume/HrmsAi.Host.Resume.csproj" />
+    <Project Path="src/HrmsAi.Invoices/HrmsAi.Invoices.csproj" />
     <Project Path="src/HrmsAi.JobDescription/HrmsAi.JobDescription.csproj" />
     <Project Path="src/HrmsAi.Platform/HrmsAi.Platform.csproj" />
     <Project Path="src/HrmsAi.Resume/HrmsAi.Resume.csproj" />

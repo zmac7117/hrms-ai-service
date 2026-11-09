@@ -53,3 +53,19 @@ The AI fills a simple extraction model. Plain code (`ResumeNormalizer`) then bui
 
 ## Performance
 See "Capacity notes" in [OPERATIONS.md](OPERATIONS.md). Measured on 8 cores and no GPU: reading the prompt runs at about 196 tokens per second, writing at about 14, so the length of the **answer** decides the time. The result for the same resume varies by about 1.5 seconds.
+
+## Shared libraries and AI slots
+- `HrmsAi.Compat` holds the Groq / OpenAI compatible plumbing used by the job description and goals modules (`LlmExecutor`, request and response shapes).
+- `HrmsAi.Documents` holds everything that reads files: PDF text (with a layout-aware reader that keeps table rows together), DOCX, text, file type detection by content, and OCR. OCR runs Tesseract and Poppler as separate programs, so a failure there cannot crash the web service.
+- **AI slots** (`IAiGate`): a limited number of slots (`Queue:Concurrency`) is shared by queued jobs and direct calls, so the CPU is never asked to do more at once than it can. A direct call that cannot get a slot within its wait time answers 503.
+- Requests made with a key are recorded for the dashboards: queued services in the jobs table, direct calls in the usage table.
+
+## Modules and their routes
+| Module | Prefix | Style |
+|---|---|---|
+| `resume` | `/api/resume` | queued job |
+| `jd` | `/api/jd` | direct call; Groq compatible and native |
+| `goals` | `/api/goals` | direct call; Groq compatible and native |
+| `match` | `/api/match` | queued job; SharpAPI protocol |
+| `invoice` | `/api/invoice` | queued job; OCR when needed |
+| `chat` | `/api/chat` | skeleton |

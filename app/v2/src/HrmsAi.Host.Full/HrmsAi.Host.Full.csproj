@@ -12,5 +12,6 @@
     <ProjectReference Include="..\HrmsAi.JobDescription\HrmsAi.JobDescription.csproj" />
     <ProjectReference Include="..\HrmsAi.Goals\HrmsAi.Goals.csproj" />
     <ProjectReference Include="..\HrmsAi.ResumeMatch\HrmsAi.ResumeMatch.csproj" />
+    <ProjectReference Include="..\HrmsAi.Invoices\HrmsAi.Invoices.csproj" />
   </ItemGroup>
 </Project>

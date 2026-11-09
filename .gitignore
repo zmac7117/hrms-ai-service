@@ -1,8 +1,9 @@
-# ---- everything at the root is ignored unless it is listed here ----
+﻿# ---- everything at the root is ignored unless it is listed here ----
 /*
 !/.gitignore
 !/.gitattributes
 !/README.md
+!/CHANGELOG.md
 !/LICENSE
 !/docs/
 !/scripts/

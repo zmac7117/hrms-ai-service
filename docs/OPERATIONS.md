@@ -35,3 +35,15 @@
 
 ## Capacity notes
 On 8 CPU cores without a GPU, a resume takes about 20 to 50 seconds, and most of that is the AI **writing** the answer (about 14 tokens per second for a 3B model), not reading the resume. Throughput is about 2 resumes per minute with one worker. Options when that is not enough: more parallel slots (`Queue:Concurrency` together with `OLLAMA_NUM_PARALLEL`, measure with `scripts\benchmark.ps1`), a shorter AI answer, a second machine taking jobs from the same queue, or a GPU.
+
+## Control panel (v3)
+`scripts\HRMS-AI-Control-Panel.bat` opens one window with: the status and Start, Stop, Restart of SQL Server, Ollama, the API (IIS site) and the tunnel; the Ollama models (Load, Unload, and Pull to download a model); a **Publish to IIS** box with the build list, the Deploy button, the release that is live, and a list of earlier releases with a Switch button (rollback); a **Tools** table (NSSM, Ollama, ngrok, Tesseract, Poppler, .NET runtime, IIS ASP.NET Core module, Git) with versions; and shortcuts to the admin pages, the client dashboard, health, logs and the releases folder. Status is collected in a background thread, so the window never freezes.
+
+## More troubleshooting
+| Symptom | Cause and fix |
+|---|---|
+| 503 with `Retry-After` from a job description or goals call | All AI slots were busy for 30 seconds. Retry, or raise `Queue:Concurrency` together with `OLLAMA_NUM_PARALLEL` after measuring with `scripts\benchmark.ps1` |
+| Invoice jobs fail with "Tesseract was not found" or "pdftoppm was not found" | Install the OCR tools (DEPLOYMENT.md, section 10) and grant the application pool access. Check with `GET /api/invoice/ocr-check` |
+| Invoice text is poor | A blurry or angled photo. Try a flat scan, a higher `Ocr:Dpi` (scanned PDFs), or another `Ocr:PageSegMode` (4 or 6) |
+| The control panel lists no builds | The source is not at `C:\HRMS AI\app\v2\src`. Change `$SrcDir` at the top of `control-panel.ps1` |
+| The dashboard shows no result for older direct calls | Results of direct calls are only stored since the dashboard update |

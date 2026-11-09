@@ -88,3 +88,20 @@ The free plan gives one fixed dev domain, shown in the ngrok dashboard. Do not p
 Update: `scripts\publish.bat` (or the "Deploy latest build" button in the control panel). Roll back: the script prints the command at the end. It is `Set-ItemProperty 'IIS:\Sites\HRMSAI-Api' -Name physicalPath -Value '<previous release>'`, then restart the site.
 
 When every client has its own key, remove the old shared key (`Security__ApiKey`) from the app pool the same way as in step 5.
+
+## 10. OCR tools (invoice parsing)
+Scanned invoices and photos need two free programs, installed under `C:\HRMS AI\tools`:
+1. **Tesseract**: download the Windows installer from the UB Mannheim page (`https://github.com/UB-Mannheim/tesseract/wiki`) and install it into `C:\HRMS AI\tools\tesseract`. English is included. Tick extra languages in the installer if needed, and set `Ocr:Language` (for example `eng+hin`).
+2. **Poppler**: download the latest zip from `https://github.com/oschwartz10612/poppler-windows/releases/` and extract it under `C:\HRMS AI\tools\poppler`.
+
+If Tesseract reports a missing `VCRUNTIME140` file, install the Microsoft Visual C++ Redistributable (x64). Give the application pool permission to run them:
+```powershell
+icacls "C:\HRMS AI\tools" /grant "IIS AppPool\HRMSAI-Api:(OI)(CI)RX"
+```
+Check with `GET /api/invoice/ocr-check` or the Tools table of the control panel. Install both programs on the server too, not only on the development PC.
+
+## 11. Builds for different clients
+`scripts\new-host.ps1 -Name AcmeHr -Modules resume,jd` creates a host that contains only those modules. `scripts\publish.bat -Build AcmeHr` (or the Deploy button of the control panel) publishes it. All builds publish to the same IIS site, so deploying another build replaces the current one. Run a second IIS site on another port if two builds must be live at the same time.
+
+## 12. Database scripts
+Run `sql/001` to `sql/005` in order. `005` adds the columns and indexes behind the dashboards.

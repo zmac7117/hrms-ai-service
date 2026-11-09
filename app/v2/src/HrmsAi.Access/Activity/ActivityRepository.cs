@@ -9,7 +9,7 @@ public class ActivityRepository(IDbConnectionFactory db)
 {
     private const string Combined = @"
         SELECT CONCAT('job:', CONVERT(NVARCHAR(36), j.Id)) AS Id, 'job' AS Source, j.CreatedAt AS At, j.JobType AS Module,
-               CASE j.JobType WHEN 'resume' THEN 'parse-file' WHEN 'match' THEN 'match-score' ELSE j.JobType END AS Operation,
+               CASE j.JobType WHEN 'resume' THEN 'parse-file' WHEN 'match' THEN 'match-score' WHEN 'invoice' THEN 'parse-file' ELSE j.JobType END AS Operation,
                j.Status AS Status, j.DurationMs AS DurationMs, j.InputFileName AS Title,
                COALESCE(u.PromptTokens, 0) AS PromptTokens, COALESCE(u.CompletionTokens, 0) AS CompletionTokens,
                COALESCE(u.TotalTokens, 0) AS TotalTokens, j.Error AS Error, j.ApiKeyId AS ApiKeyId
@@ -107,7 +107,7 @@ public class ActivityRepository(IDbConnectionFactory db)
             return await c.QueryFirstOrDefaultAsync<ActivityDetail>(@"
                 SELECT CONCAT('job:', CONVERT(NVARCHAR(36), j.Id)) AS Id, 'job' AS Source, j.CreatedAt AS At, j.CompletedAt AS CompletedAt,
                        j.JobType AS Module,
-                       CASE j.JobType WHEN 'resume' THEN 'parse-file' WHEN 'match' THEN 'match-score' ELSE j.JobType END AS Operation,
+                       CASE j.JobType WHEN 'resume' THEN 'parse-file' WHEN 'match' THEN 'match-score' WHEN 'invoice' THEN 'parse-file' ELSE j.JobType END AS Operation,
                        j.Status AS Status, j.DurationMs AS DurationMs, j.InputFileName AS Title,
                        COALESCE(u.PromptTokens, 0) AS PromptTokens, COALESCE(u.CompletionTokens, 0) AS CompletionTokens,
                        COALESCE(u.TotalTokens, 0) AS TotalTokens, j.Error AS Error, j.ApiKeyId AS ApiKeyId,
@@ -134,3 +134,4 @@ public class ActivityRepository(IDbConnectionFactory db)
         return null;
     }
 }
+
