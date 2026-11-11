@@ -72,7 +72,9 @@ public class ResumeParserService(IChatClient chat, ILogger<ResumeParserService> 
     private static readonly string ExampleAnswerJson =
         JsonSerializer.Serialize(ExampleAnswer, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-    public async Task<ParseOutcome> ParseAsync(string text, CancellationToken ct)
+    public Task<ParseOutcome> ParseAsync(string text, CancellationToken ct) => ParseCoreAsync(ContactCleaner.Prepare(text), ct);
+
+    private async Task<ParseOutcome> ParseCoreAsync(string text, CancellationToken ct)
     {
         var messages = new List<ChatMessage>
         {
@@ -90,9 +92,13 @@ public class ResumeParserService(IChatClient chat, ILogger<ResumeParserService> 
             log.LogWarning("Model returned unparseable output: {Text}", response.Text);
             throw new InvalidOperationException("The AI returned output that could not be read as resume data.");
         }
-        return new ParseOutcome(ResumeNormalizer.Normalize(result, text, ai.Value.ChatModel), AiUsage.From(response.Usage?.InputTokenCount, response.Usage?.OutputTokenCount, text.Length));
+        var parsed = ResumeNormalizer.Normalize(result, text, ai.Value.ChatModel);
+        ContactCleaner.Repair(parsed, text, result.Email, result.Phone);
+        return new ParseOutcome(parsed, AiUsage.From(response.Usage?.InputTokenCount, response.Usage?.OutputTokenCount, text.Length));
     }
 }
+
+
 
 
 
