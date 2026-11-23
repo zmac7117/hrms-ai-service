@@ -1,4 +1,4 @@
-﻿# =====================================================================
+# =====================================================================
 #  HRMS AI Control Panel  v3   (Windows PowerShell 5.1, needs administrator rights)
 #  Status checks run in a background thread, so the window never freezes.
 # =====================================================================
@@ -640,6 +640,75 @@ function Apply-Status($s) {
     Apply-Models $s.Tags $s.Ps
 }
 
+# ---------- model per module ----------
+function Show-ModelsDialog {
+    $script:mf = "$Root\config\models.json"
+    $tags = Get-Json "$OllamaUrl/api/tags" 3
+    $names = @()
+    if ($tags -and $tags.models) { $names = @($tags.models | ForEach-Object { $_.name }) }
+    $cur = $null
+    try { if (Test-Path $script:mf) { $cur = Get-Content $script:mf -Raw | ConvertFrom-Json } } catch {}
+
+    # Only modules that read "<Section>:Model" are listed here.
+    $mods = @(
+        @{ Key = 'Chat';   Title = 'Chat (Sia)' },
+        @{ Key = 'Resume'; Title = 'Resume parsing' }
+    )
+
+    $dlg = New-Object System.Windows.Forms.Form
+    $dlg.Text = "Model per module"
+    $dlg.ClientSize = New-Object System.Drawing.Size(460, (110 + 40 * $mods.Count))
+    $dlg.StartPosition = "CenterParent"
+    $dlg.FormBorderStyle = "FixedDialog"
+    $dlg.MaximizeBox = $false
+    $dlg.Font = $fontN
+
+    $script:mc = @{}
+    $y = 16
+    foreach ($m in $mods) {
+        $lbl = New-Object System.Windows.Forms.Label
+        $lbl.Text = $m.Title; $lbl.Location = New-Object System.Drawing.Point(16, ($y + 4)); $lbl.Size = New-Object System.Drawing.Size(130, 20)
+        $cb = New-Object System.Windows.Forms.ComboBox
+        $cb.DropDownStyle = "DropDown"
+        $cb.Location = New-Object System.Drawing.Point(150, $y); $cb.Size = New-Object System.Drawing.Size(290, 24)
+        [void]$cb.Items.Add("")
+        foreach ($n in $names) { [void]$cb.Items.Add($n) }
+        $val = ""
+        try { $v = $cur.($m.Key).Model; if ($v) { $val = [string]$v } } catch {}
+        $cb.Text = $val
+        $script:mc[$m.Key] = $cb
+        $dlg.Controls.AddRange(@($lbl, $cb))
+        $y += 40
+    }
+    $hint = New-Object System.Windows.Forms.Label
+    $hint.Text = "Empty = the default model (Ai:ChatModel). Applies after the API restarts."
+    $hint.Location = New-Object System.Drawing.Point(16, $y); $hint.Size = New-Object System.Drawing.Size(430, 20)
+    $hint.ForeColor = $cGray
+    $ok = New-Object System.Windows.Forms.Button
+    $ok.Text = "Save"; $ok.Location = New-Object System.Drawing.Point(270, ($y + 30)); $ok.Size = New-Object System.Drawing.Size(80, 28)
+    $cancel = New-Object System.Windows.Forms.Button
+    $cancel.Text = "Cancel"; $cancel.Location = New-Object System.Drawing.Point(360, ($y + 30)); $cancel.Size = New-Object System.Drawing.Size(80, 28)
+    $cancel.DialogResult = "Cancel"
+    $ok.DialogResult = "OK"
+    $dlg.Controls.AddRange(@($hint, $ok, $cancel))
+    $dlg.AcceptButton = $ok; $dlg.CancelButton = $cancel
+
+    if ($dlg.ShowDialog($form) -ne 'OK') { return }
+
+    $out = [ordered]@{}
+    foreach ($k in $script:mc.Keys) {
+        $t = $script:mc[$k].Text.Trim()
+        if ($t -and $t -notmatch '^[A-Za-z0-9._:/\-]+$') { Write-Log "Invalid model name for ${k}: $t"; return }
+        if ($t) { $out[$k] = [ordered]@{ Model = $t } }
+    }
+    $json = if ($out.Count) { $out | ConvertTo-Json -Depth 4 } else { "{}" }
+    New-Item -ItemType Directory -Force -Path (Split-Path $script:mf) | Out-Null
+    [System.IO.File]::WriteAllText($script:mf, $json, (New-Object System.Text.UTF8Encoding($false)))
+    Write-Log "Saved models: $($json -replace '\s+', ' ')"
+    $a = [System.Windows.Forms.MessageBox]::Show("Saved. Restart the API now so the change applies?", "Models", "YesNo", "Question")
+    if ($a -eq 'Yes') { Do-Action 'api' 'restart' }
+}
+
 # ---------- build the window ----------
 function New-Label($text, $x, $y, $w, $h, $font) {
     $l = New-Object System.Windows.Forms.Label
@@ -777,6 +846,7 @@ $bClient   = New-Btn "Client page"      442 722 100 30
 $bHealth   = New-Btn "Health"           548 722 80  30
 $bLogs     = New-Btn "Logs folder"      634 722 96  30
 $bRelDir   = New-Btn "Releases folder"  736 722 110 30
+$bModels   = New-Btn "Models"           852 722 72 30
 $bStartAll.Add_Click({ Start-All })
 $bStopAll.Add_Click({ Stop-All })
 $bAdmin.Add_Click({ Start-Process "$ApiUrl/admin" })
@@ -785,6 +855,7 @@ $bClient.Add_Click({ Start-Process "$ApiUrl/dashboard" })
 $bHealth.Add_Click({ Start-Process "$ApiUrl/api/health" })
 $bLogs.Add_Click({ if (Test-Path $LogsDir) { Start-Process explorer.exe $LogsDir } })
 $bRelDir.Add_Click({ if (Test-Path $Releases) { Start-Process explorer.exe $Releases } })
+$bModels.Add_Click({ Show-ModelsDialog })
 
 $txtLog = New-Object System.Windows.Forms.TextBox
 $txtLog.Multiline = $true
@@ -798,7 +869,7 @@ $lblNote = New-Label "Closing this window does not stop anything. Status refresh
 $lblNote.ForeColor = $cGray
 
 $form.Controls.AddRange(@($lblTitle, $lblBanner, $gbS, $gbM, $gbD, $gbT,
-    $bStartAll, $bStopAll, $bAdmin, $bActivity, $bClient, $bHealth, $bLogs, $bRelDir, $txtLog, $lblNote))
+    $bStartAll, $bStopAll, $bAdmin, $bActivity, $bClient, $bHealth, $bLogs, $bRelDir, $bModels, $txtLog, $lblNote))
 
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 700

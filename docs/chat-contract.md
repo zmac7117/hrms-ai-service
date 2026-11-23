@@ -158,3 +158,37 @@ Some answers are a short sentence (`ReceiveToken`) plus a card. The AI server se
 
 - Only `type: "table"` exists for now. A client that does not know a card type must ignore it (the text still makes sense).
 - The HRMS passes the card to the browser as it is. Cell values are plain text and must never be shown as HTML.
+
+## 13. get_attendance_summary
+
+Attendance of the logged-in user for the current month, one row per day.
+The AI server decides if the user wants today, this week or this month and filters the rows itself.
+Never cached. The reply is written by code (intro sentence + table card), not by the AI.
+
+Trigger questions: "my attendance today", "did I punch in today", "attendance this week", "my attendance this month".
+Not triggered (knowledge base): "how do I regularize my attendance", "attendance policy".
+
+HRMS returns (`SubmitActionResult` data):
+
+```json
+{
+  "month": "2026-11",
+  "today": "2026-11-23",
+  "days": [
+    { "date": "2026-11-02", "status": "Present",    "checkIn": "09:05", "checkOut": "18:10", "hours": 9.08 },
+    { "date": "2026-11-09", "status": "Leave",      "checkIn": null,    "checkOut": null,    "hours": null },
+    { "date": "2026-11-12", "status": "Absent",     "checkIn": null,    "checkOut": null,    "hours": null },
+    { "date": "2026-11-16", "status": "Half Day",   "checkIn": "09:10", "checkOut": "13:30", "hours": 4.33 },
+    { "date": "2026-11-21", "status": "Weekly Off", "checkIn": null,    "checkOut": null,    "hours": null },
+    { "date": "2026-11-23", "status": "Present",    "checkIn": "09:05", "checkOut": null,    "hours": null }
+  ]
+}
+```
+
+Rules:
+- `status` is one of: Present, Absent, Half Day, Leave, Holiday, Weekly Off.
+- `date` is `yyyy-MM-dd`. Times are `HH:mm` in 24 hours, or null. `hours` is a number or null.
+- Send rows from the 1st of the month up to today. Rows after `today` are ignored.
+- The user is always `externalUserId`. Return null (ok:false or no data) when nothing is found.
+- Today and this week: card `Date | Status | In | Out`. This month: card `Status | Days` (counts per status).
+- At most 15 rows are shown. If there are more, the intro says "Showing 15 of N".

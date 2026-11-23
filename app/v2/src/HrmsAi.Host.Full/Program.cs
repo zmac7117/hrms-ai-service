@@ -1,4 +1,4 @@
-﻿using HrmsAi.Access;
+using HrmsAi.Access;
 using HrmsAi.Chat;
 using HrmsAi.Goals;
 using HrmsAi.Invoices;
@@ -8,6 +8,7 @@ using HrmsAi.Resume;
 using HrmsAi.ResumeMatch;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile(@"C:\HRMS AI\config\models.json", optional: true, reloadOnChange: false);
 builder.AddHrmsAi(new AccessModule(), new ResumeModule(), new JobDescriptionModule(), new GoalsModule(), new MatchModule(), new InvoiceModule(), new ChatModule());
 
 var app = builder.Build();

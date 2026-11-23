@@ -64,6 +64,30 @@ public class ChatAnswerService(
                 return;
             }
 
+            // ---- 1c. Attendance: ask the HRMS, reply built by code (never by the AI) ----
+            if (ChatShortcuts.WantsAttendance(r.Text))
+            {
+                var attendance = await actions.RunAsync(r.ConnectionId, "get_attendance_summary", r.ExternalUserId, ct);
+                var reply = attendance.Ok && attendance.Json is not null
+                    ? AttendanceReply.Format(attendance.Json, r.UserName, r.Text)
+                    : null;
+                if (reply is null)
+                {
+                    log.LogWarning("Attendance not available for {Message}: {Error}", r.MessageId, attendance.Error);
+                    reply = cfg.HrSystemDownReply;
+                    await ReplyFixedAsync(client, usageRecorder, r, reply, "hrms_unavailable", sw.ElapsedMilliseconds, ct);
+                }
+                else
+                {
+                    var built = AttendanceReply.Build(attendance.Json!, r.UserName, r.Text);
+                    if (built is null)
+                        await ReplyFixedAsync(client, usageRecorder, r, reply, "attendance", sw.ElapsedMilliseconds, ct);
+                    else
+                        await ReplyCardAsync(client, usageRecorder, r, built, reply, "attendance", sw.ElapsedMilliseconds, ct);
+                }
+                return;
+            }
+
             // ---- 2. Questions about the user's own details: ask the HRMS (kept in memory afterwards) ----
             string? profileJson = null;
             var wantsProfile = ChatShortcuts.WantsProfile(r.Text);
@@ -109,7 +133,7 @@ public class ChatAnswerService(
             var checkUsage = AiUsage.None;
             if (cfg.ScopeCheck && !wantsProfile && knowledgeText is null)
             {
-                var verdict = await ScopeGuard.CheckAsync(chat, history, r.Text, cfg.OutOfScopeReply, ct);
+                var verdict = await ScopeGuard.CheckAsync(chat, history, r.Text, cfg.OutOfScopeReply, ct, cfg.ScopeModel ?? cfg.Model);
                 log.LogInformation("Scope check for {Message}: inScope={InScope} reason={Reason}", r.MessageId, verdict.InScope, verdict.Reason);
                 checkUsage = verdict.Usage;
                 if (!verdict.InScope)
@@ -131,6 +155,7 @@ public class ChatAnswerService(
             var messages = ChatPrompt.Build(r.UserName, history, r.Text, profileJson, knowledgeText);
             var chatOptions = new ChatOptions
             {
+                ModelId = string.IsNullOrWhiteSpace(cfg.Model) ? null : cfg.Model,
                 Temperature = (float)cfg.Temperature,
                 MaxOutputTokens = cfg.MaxOutputTokens
             };

@@ -21,6 +21,20 @@ public static class ChatShortcuts
 
     public static bool WantsLeaveBalance(string text) => LeaveBalanceWords.IsMatch(text);
 
+    // "my attendance this month", "did I punch in today" - but not "how do I regularize attendance" (that is a how-to).
+    private static readonly Regex AttendanceWords = new(
+        @"\bmy attendance\b|\battendance (today|this (week|month)|summary|status|record|details)\b|" +
+        @"\b(am i|was i|did i) (present|absent|late)\b|\b(did i|have i) (punch|check)(ed)?[- ]?in\b|" +
+        @"\bmy (check|punch)[- ]?(in|out) (time|today)\b|\bmy (working|worked) hours\b|" +
+        @"\bhow many days\b.*\b(present|absent|worked)\b",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex AttendanceHowTo = new(
+        @"\b(how (do|can|to|should)|regulari[sz]e|regulari[sz]ation|policy|rules?|apply|request|correct|missed|forgot)\b",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    public static bool WantsAttendance(string text) => AttendanceWords.IsMatch(text) && !AttendanceHowTo.IsMatch(text);
+
     private static readonly Regex QuestionStart = new(
         @"^\s*(how|what|when|where|who|whom|which|why|can|could|do|does|did|is|are|will|should|may|tell|explain|give|show|list)\b",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);

@@ -3,6 +3,10 @@ namespace HrmsAi.Chat;
 // Config section "Chat". Every value has a default, so appsettings needs no change.
 public class ChatSettings
 {
+    // Ollama model for chat (answers and scope check). Empty = the default Ai:ChatModel.
+    public string? Model { get; set; }
+    public string? ScopeModel { get; set; }   // optional smaller model for the scope check only
+
     public double Temperature { get; set; } = 0.5;
     public int MaxOutputTokens { get; set; } = 300;   // about 20 seconds of writing on this CPU
     public int HistoryMessages { get; set; } = 6;

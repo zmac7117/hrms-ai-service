@@ -6,6 +6,7 @@
     <Project Path="src/HrmsAi.Compat/HrmsAi.Compat.csproj" />
     <Project Path="src/HrmsAi.Documents/HrmsAi.Documents.csproj" />
     <Project Path="src/HrmsAi.Goals/HrmsAi.Goals.csproj" />
+    <Project Path="src/HrmsAi.Host.Chat/HrmsAi.Host.Chat.csproj" />
     <Project Path="src/HrmsAi.Host.Full/HrmsAi.Host.Full.csproj" />
     <Project Path="src/HrmsAi.Host.Resume/HrmsAi.Host.Resume.csproj" />
     <Project Path="src/HrmsAi.Invoices/HrmsAi.Invoices.csproj" />

@@ -26,14 +26,14 @@ public static class ScopeGuard
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static async Task<Verdict> CheckAsync(
-        IChatClient chat, IReadOnlyList<HistoryItem> history, string text, string refusalText, CancellationToken ct)
+        IChatClient chat, IReadOnlyList<HistoryItem> history, string text, string refusalText, CancellationToken ct, string? model = null)
     {
         var trimmed = text.Trim().Trim('.', '!', '?', ',', ' ');
         if (Greetings.Contains(trimmed)) return new Verdict(true, AiUsage.None, "greeting");
         if (HrWords.IsMatch(text)) return new Verdict(true, AiUsage.None, "keyword");
 
         var messages = ChatPrompt.BuildScopeCheck(history, text, refusalText);
-        var options = new ChatOptions { Temperature = 0, MaxOutputTokens = 4 };
+        var options = new ChatOptions { Temperature = 0, MaxOutputTokens = 4, ModelId = string.IsNullOrWhiteSpace(model) ? null : model };
 
         var response = await chat.GetResponseAsync(messages, options, ct);
         var word = (response.Text ?? "").Trim().ToUpperInvariant();
