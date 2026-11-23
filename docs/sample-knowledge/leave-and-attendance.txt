@@ -1,0 +1,19 @@
+How to apply for leave
+
+1. Log in to the HRMS and open the Leave menu on the left side.
+2. Click Apply Leave.
+3. Choose the leave type (Casual, Sick or Earned), the from date and the to date.
+4. Write a short reason and click Submit.
+Your reporting manager receives the request. You get a notification when it is approved or rejected.
+
+How to cancel a leave request
+
+Open Leave, then My Requests. Find the request and click Cancel. Only requests that are still pending or approved for a future date can be cancelled.
+
+Sick leave policy
+
+Sick leave of more than 2 days in a row needs a medical certificate. Upload it in the same Apply Leave form under Attachments.
+
+How to correct attendance
+
+If you forgot to punch in or out, open Attendance, then Regularization. Select the date, enter the correct time and the reason, and submit. Your manager approves it.
